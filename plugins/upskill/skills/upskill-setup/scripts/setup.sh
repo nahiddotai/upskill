@@ -84,7 +84,9 @@ seed_remote() {
 if [ -n "$REMOTE_OVERRIDE" ]; then
   say "1. seeding $REMOTE from the bundled template (if empty)…"
   if [ "$DRY" = 0 ] && ! git ls-remote --exit-code "$REMOTE" main >/dev/null 2>&1; then seed_remote; fi
-elif gh repo view "$LOGIN/$NAME" >/dev/null 2>&1; then
+elif [ "$(gh repo view "$LOGIN/$NAME" --json name -q .name 2>/dev/null)" = "$NAME" ]; then
+  # exact-name match required: gh follows GitHub rename redirects, which would
+  # otherwise make us silently reuse a renamed/archived repo
   say "1. repo $LOGIN/$NAME already exists — reusing (your skills are safe)."
 else
   say "1. creating $LOGIN/$NAME from the bundled template…"

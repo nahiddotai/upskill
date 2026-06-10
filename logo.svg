@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#4f46e5"/>
+      <stop offset="0.45" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+
+  <!-- dark-950 base, rounded-2xl -->
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="#020617"/>
+  <!-- ambient indigo blob, top-right, subtle -->
+  <circle cx="92" cy="34" r="30" fill="#6366f1" opacity="0.22" filter="url(#glow)"/>
+
+  <!-- the U: right stem rises into the arrow; the arrowhead's wings spring
+       from the stem's endpoint so its underside blends into the straight side -->
+  <g fill="none" stroke="url(#brand)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- left stem + bowl + right stem, continuing up to the arrow apex -->
+    <path d="M42 36 L42 68 A22 22 0 0 0 86 68 L86 24"/>
+    <!-- arrow wings, anchored exactly at the stem's tip (86,24) -->
+    <path d="M70 40 L86 24 L102 40"/>
+  </g>
+</svg>

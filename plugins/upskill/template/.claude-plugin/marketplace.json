@@ -1,0 +1,19 @@
+{
+  "name": "upskill-skills",
+  "owner": {
+    "name": "Upskill user",
+    "url": "https://github.com/nahiddotai/upskill"
+  },
+  "metadata": {
+    "description": "My personal skills, synced everywhere by Upskill.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "skills",
+      "source": "./plugins/skills",
+      "description": "My personal skills, synced everywhere by Upskill.",
+      "version": "0.1.0"
+    }
+  ]
+}

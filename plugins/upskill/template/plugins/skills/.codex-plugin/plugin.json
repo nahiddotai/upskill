@@ -1,0 +1,6 @@
+{
+  "name": "skills",
+  "version": "0.1.0",
+  "description": "My personal skills, synced everywhere by Upskill.",
+  "skills": "./skills/"
+}

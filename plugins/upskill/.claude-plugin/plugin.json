@@ -1,0 +1,13 @@
+{
+  "name": "upskill",
+  "version": "0.2.0",
+  "description": "Sync your skills across all your AI agents. Install once, say \"set up upskill\", then \"sync\" from anywhere.",
+  "author": {
+    "name": "Upskill",
+    "url": "https://github.com/nahiddotai"
+  },
+  "homepage": "https://github.com/nahiddotai/upskill",
+  "repository": "https://github.com/nahiddotai/upskill",
+  "license": "MIT",
+  "keywords": ["skills", "sync", "cross-agent", "skill.md", "share"]
+}

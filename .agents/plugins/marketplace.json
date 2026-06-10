@@ -1,0 +1,23 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "upskill",
+  "owner": {
+    "name": "Upskill",
+    "url": "https://github.com/nahiddotai"
+  },
+  "metadata": {
+    "description": "Upskill — sync your skills across every AI agent you use, and share any of them with a link.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "upskill",
+      "source": "./plugins/upskill",
+      "description": "Sync your skills across all your AI agents. Install once, say \"set up upskill\", then \"sync\" from anywhere.",
+      "category": "productivity",
+      "homepage": "https://github.com/nahiddotai/upskill",
+      "keywords": ["skills", "sync", "cross-agent", "skill.md", "share"],
+      "version": "0.2.0"
+    }
+  ]
+}

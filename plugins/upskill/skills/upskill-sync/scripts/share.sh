@@ -39,8 +39,9 @@ git -C "$SHARED_DIR" add -A
 git -C "$SHARED_DIR" commit -q -m "share: $SKILL v$VER"
 git -C "$SHARED_DIR" push -q origin HEAD:main
 
+APP_URL="${UPSKILL_APP_URL:-https://upskill-app.pages.dev}"
 echo "✓ Shared '$SKILL' (v$VER) publicly."
-echo "  Your profile:     https://github.com/$LOGIN/upskill-shared"
-echo "  Direct link:      https://github.com/$LOGIN/upskill-shared/tree/main/plugins/$SKILL"
-echo "  Recipients install with:"
-echo "    claude plugin marketplace add $LOGIN/upskill-shared && claude plugin install $SKILL@upskill-shared"
+echo "  Your page (share this): ${APP_URL%/}/u/$LOGIN"
+echo "  GitHub:                 https://github.com/$LOGIN/upskill-shared/tree/main/plugins/$SKILL"
+echo "  Recipients can install from the page, or paste to their agent:"
+echo "    Add the plugin marketplace https://github.com/$LOGIN/upskill-shared and install the \"$SKILL\" plugin from it."

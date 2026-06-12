@@ -111,20 +111,39 @@ if [ "$DRY" = 0 ]; then
 fi
 
 # --- 4. wire the clients we found (both marketplaces) -------------------------
-PERSONAL_SRC="$([ -n "$REMOTE_OVERRIDE" ] && echo "$REMOTE" || echo "$LOGIN/$NAME")"
+# Always pass FULL git URLs: Claude Code accepts owner/repo shorthand but
+# Codex does not, and a swallowed failure here means one client silently
+# never receives synced skills (the exact bug this replaced).
+WIRE_WARN=0
+wire(){ # wire <label> <cmd…> — run, report failure instead of hiding it; never aborts
+  local label="$1"; shift
+  if [ "$DRY" = 1 ]; then say "  [dry-run] $*"; return 0; fi
+  local out
+  if ! out="$("$@" 2>&1)"; then
+    say "  ⚠ $label: ${out##*$'\n'}"
+    WIRE_WARN=1
+  fi
+  return 0
+}
+PERSONAL_SRC="$REMOTE"
+SYSTEM_SRC="$SYSTEM_REPO"
+case "$SYSTEM_SRC" in http*|git@*) :;; *) SYSTEM_SRC="https://github.com/$SYSTEM_REPO.git";; esac
 if [ -n "$CLAUDE" ]; then
   say "4a. wiring Claude Code…"
-  run "$CLAUDE plugin marketplace add $SYSTEM_REPO >/dev/null 2>&1 || true"
-  run "$CLAUDE plugin install upskill@upskill >/dev/null 2>&1 || true"
-  run "$CLAUDE plugin marketplace add $PERSONAL_SRC >/dev/null 2>&1 || true"
-  run "$CLAUDE plugin install skills@upskill-skills >/dev/null 2>&1 || true"
+  [ -d "$HOME/.claude/plugins/marketplaces/upskill" ] || wire "Claude Code" "$CLAUDE" plugin marketplace add "$SYSTEM_SRC"
+  wire "Claude Code" "$CLAUDE" plugin install upskill@upskill
+  [ -d "$HOME/.claude/plugins/marketplaces/upskill-skills" ] || wire "Claude Code" "$CLAUDE" plugin marketplace add "$PERSONAL_SRC"
+  wire "Claude Code" "$CLAUDE" plugin install skills@upskill-skills
 fi
 if [ -n "$CODEX" ]; then
   say "4b. wiring Codex…"
-  run "\"$CODEX\" plugin marketplace add $SYSTEM_REPO >/dev/null 2>&1 || true"
-  run "\"$CODEX\" plugin add upskill@upskill >/dev/null 2>&1 || true"
-  run "\"$CODEX\" plugin marketplace add $PERSONAL_SRC >/dev/null 2>&1 || true"
-  run "\"$CODEX\" plugin add skills@upskill-skills >/dev/null 2>&1 || true"
+  wire "Codex" "$CODEX" plugin marketplace add "$SYSTEM_SRC"
+  wire "Codex" "$CODEX" plugin add upskill@upskill
+  wire "Codex" "$CODEX" plugin marketplace add "$PERSONAL_SRC"
+  wire "Codex" "$CODEX" plugin add skills@upskill-skills
+fi
+if [ "$WIRE_WARN" = 1 ]; then
+  say "  ⚠ Some client wiring failed (see above) — run /upskill:doctor for exact fixes."
 fi
 
 # --- done --------------------------------------------------------------------

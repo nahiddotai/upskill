@@ -11,8 +11,9 @@
 #   • Lint gate: a malformed skill never propagates (name/description checked).
 #   • Last-push-wins: concurrent pushes from other clients are rebased in
 #     (your edits win on conflict); nothing is lost — git history keeps all.
-#   • Import MOVES the source copy to ~/.upskill/trash so a skill is never
-#     loaded twice from two locations.
+#   • Import copies the skill in, then retires the source copy to
+#     ~/.upskill/trash ONLY after _refresh.sh verifies the synced copy is
+#     live in every client — a failed refresh never costs the only copy.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -58,13 +59,14 @@ import_one() {
   esac
   rm -rf "${SKILLS_ROOT:?}/$NAME"; mkdir -p "$SKILLS_ROOT"
   cp -R "$SRC" "$SKILLS_ROOT/$NAME"
-  # Move (don't copy) the source out of the way so the skill isn't loaded
-  # twice. Recoverable from ~/.upskill/trash.
-  local TRASH="$HOME/.upskill/trash/$(date -u +%Y%m%dT%H%M%SZ)-$NAME"
-  mkdir -p "$(dirname "$TRASH")"
-  mv "$SRC" "$TRASH"
+  # DON'T delete the source yet. Record it as a pending import; _refresh.sh
+  # retires it to ~/.upskill/trash only after verifying the synced copy is
+  # actually live in every client. Until then a duplicate may load — annoying,
+  # but never data loss.
+  mkdir -p "$HOME/.upskill"
+  printf '%s\t%s\n' "$NAME" "$SRC" >> "$HOME/.upskill/.pending_imports"
   echo "• Imported '$NAME' from $SRC"
-  echo "  (original moved to $TRASH so it isn't loaded twice — Upskill owns it now)"
+  echo "  (original stays until the synced copy is verified live in your clients)"
 }
 
 for arg in "$@"; do
@@ -82,6 +84,11 @@ fi
 git -C "$WORKDIR" add -A
 if git -C "$WORKDIR" diff --cached --quiet && git -C "$WORKDIR" diff --quiet HEAD -- 2>/dev/null; then
   echo "• Nothing to sync (no changes)."
+  # Still run the refresh if imports are awaiting verification — otherwise a
+  # re-import of identical content would leave the original shadowing forever.
+  if [ -s "$HOME/.upskill/.pending_imports" ] && [ -z "${UPSKILL_SKIP_REFRESH:-}" ]; then
+    bash "$SCRIPT_DIR/_refresh.sh"
+  fi
   exit 0
 fi
 git -C "$WORKDIR" commit -q -m "upskill sync (pending)"

@@ -40,8 +40,10 @@ locally; none call a model.
      candidates, show the names and ask one short question: *"Also sync these?"*
      — then include the ones they want. If it finds nothing, just sync.
 2. **Run it:** `scripts/reconcile.sh [name…]` — handles import + push + pull +
-   refresh in one shot. Imported originals are **moved to `~/.upskill/trash`**
-   so a skill is never loaded twice; mention that in your summary.
+   refresh in one shot. Imported originals are retired to `~/.upskill/trash`
+   **only after the synced copy is verified live in every client** (until
+   then they stay put — no data loss if a client's refresh fails); mention
+   that in your summary, and surface any ⚠ lines the scripts print.
 3. **Report in one or two sentences:** what synced, the new version, and that
    brand-new skills load after **`/reload-plugins`** (Claude Code CLI) or an
    **app restart** (desktop). They install at user scope — every project,

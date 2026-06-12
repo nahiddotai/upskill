@@ -85,6 +85,59 @@ if [ -n "$WORKDIR" ] && [ -d "$WORKDIR/plugins/skills/skills" ]; then
 fi
 
 echo ""
+echo "Clients:"
+# What version SHOULD every client have? (the workspace's current one)
+PLUGVER=""
+if [ -n "$WORKDIR" ] && [ -f "$WORKDIR/plugins/skills/.claude-plugin/plugin.json" ]; then
+  PLUGVER="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("version",""))' \
+            "$WORKDIR/plugins/skills/.claude-plugin/plugin.json" 2>/dev/null || true)"
+fi
+
+check_cache(){ # check_cache <label> <cache-root> <update-fix>
+  local label="$1" root="$2" fix="$3" have=""
+  if [ -n "$PLUGVER" ] && [ -d "$root/upskill-skills/skills/$PLUGVER" ]; then
+    ok "$label: personal skills plugin installed at current v$PLUGVER"
+  elif [ -d "$root/upskill-skills/skills" ]; then
+    have="$(ls "$root/upskill-skills/skills" 2>/dev/null | sort -V | tail -1)"
+    bad "$label: skills plugin is v${have:-?}, workspace is v${PLUGVER:-?} (stale — synced skills not visible here)" "$fix"
+  else
+    bad "$label: personal skills plugin not installed" "$fix"
+  fi
+}
+
+if command -v claude >/dev/null 2>&1; then
+  if [ -d "$HOME/.claude/plugins/marketplaces/upskill-skills" ]; then
+    ok "Claude Code: upskill-skills marketplace registered"
+  else
+    bad "Claude Code: upskill-skills marketplace NOT registered" "claude plugin marketplace add ${UPSKILL_REMOTE:-<your-skills-repo-url>}"
+  fi
+  check_cache "Claude Code" "$HOME/.claude/plugins/cache" \
+    "claude plugin marketplace update upskill-skills && claude plugin update skills@upskill-skills"
+fi
+
+CODEXBIN="$(command -v codex || true)"
+[ -z "$CODEXBIN" ] && [ -x "/Applications/Codex.app/Contents/Resources/codex" ] && CODEXBIN="/Applications/Codex.app/Contents/Resources/codex"
+if [ -n "$CODEXBIN" ]; then
+  if "$CODEXBIN" plugin marketplace list 2>/dev/null | grep -qE '^upskill-skills[[:space:]]'; then
+    ok "Codex: upskill-skills marketplace registered"
+  else
+    bad "Codex: upskill-skills marketplace NOT registered (Codex needs the FULL URL — owner/repo shorthand fails)" \
+        "\"$CODEXBIN\" plugin marketplace add ${UPSKILL_REMOTE:-<your-skills-repo-url>}"
+  fi
+  check_cache "Codex" "$HOME/.codex/plugins/cache" \
+    "\"$CODEXBIN\" plugin marketplace upgrade upskill-skills && \"$CODEXBIN\" plugin add skills@upskill-skills"
+fi
+
+# Imports still awaiting verification (originals deliberately kept until the
+# synced copy is confirmed live everywhere — see _refresh.sh).
+if [ -s "$HOME/.upskill/.pending_imports" ]; then
+  while IFS="$(printf '\t')" read -r n s; do
+    [ -n "$n" ] || continue
+    bad "import of '$n' not yet verified live in every client (original kept at $s)" "fix the client problems above, then say \"upskill sync\" again"
+  done < "$HOME/.upskill/.pending_imports"
+fi
+
+echo ""
 echo "Result: $OK ok, $BAD problem(s)."
 [ "$BAD" = 0 ] && echo "You're healthy. Sync away." || echo "Run the fixes above, then /upskill:doctor again."
 exit 0
